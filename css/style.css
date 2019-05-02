@@ -1,0 +1,27 @@
+ul.bbwp_db_backup_list{
+	max-width:90%;
+}
+ul.bbwp_db_backup_list li{
+	list-style-type: none;
+	margin:0 0 10px 0;
+	padding:0px;
+}
+ul.bbwp_db_backup_list li a{
+	text-decoration: none!important;
+}
+ul.bbwp_db_backup_list li span{
+	display:inline-block;
+	background-color: #e5e5e5;
+	padding:10px;
+}
+ul.bbwp_db_backup_list li span.dashicons{
+	cursor: pointer;
+}
+ul.bbwp_db_backup_list li span.dashicons:hover{
+	color:#f00;
+}
+.clearboth{
+	clear:both;
+	margin:0px;
+	padding:0px;
+}
