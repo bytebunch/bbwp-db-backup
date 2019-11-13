@@ -1,4 +1,7 @@
 <?php
+namespace ByteBunch\BBWPDBBackup;
+use ByteBunch\BBWPDBBackup\BBWP_DB_Backup as BBWP_DB_Backup;
+
 // exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

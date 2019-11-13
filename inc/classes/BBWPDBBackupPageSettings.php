@@ -1,4 +1,6 @@
 <?php
+use ByteBunch\BBWPDBBackup\BBWP_DB_Backup as BBWP_DB_Backup;
+use ByteBunch\BBWPDBBackup\BBWPDBBackupFileSystem as BBWPDBBackupFileSystem;
 // exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -62,7 +64,12 @@ class BBWPDBBackupPageSettings extends BBWP_DB_Backup{
                     $selected_value = $this->get_option('recurrence');
                     echo '<select name="'.$this->prefix.'[recurrence]">' . ArraytoSelectList($schedulesCrons, $selected_value) .'</select'; ?>
                   </td>
-              </tr>
+							</tr>
+							<tr valign="top">
+								<?php $selected_value = $this->get_option('dropbox_token'); ?>
+                <th scope="row"><label for="dropbox_token">Dropbox Authorization Token</label></th>
+								<td><input type="text" name="<?php echo $this->prefix.'[dropbox_token]'; ?>" id="dropbox_token" value="<?php echo $selected_value; ?>"></td>
+							</tr>
             </table>
             </div><!-- inside-->
             </div><!-- postbox-->
@@ -142,7 +149,13 @@ class BBWPDBBackupPageSettings extends BBWP_DB_Backup{
             $update_message = '<p>Your setting have been updated.</p>';
             update_option("bbwp_update_message", $update_message);
           }
-        }
+				}
+				if(isset($_POST[$this->prefix]['dropbox_token']) && $_POST[$this->prefix]['dropbox_token']){
+					$value = BBWPSanitization::Textfield($_POST[$this->prefix]['dropbox_token']);
+					$this->set_option('dropbox_token', $value);
+					$update_message = '<p>Your setting have been updated.</p>';
+					update_option("bbwp_update_message", $update_message);
+				}
 
       }
 

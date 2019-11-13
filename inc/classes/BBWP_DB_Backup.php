@@ -1,4 +1,8 @@
 <?php
+namespace ByteBunch\BBWPDBBackup;
+
+use DateTime;
+
 // exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,7 +20,9 @@ class BBWP_DB_Backup{
   public function __construct(){
 
 		// get the plugin options/settings.
-    self::$options = SerializeStringToArray(get_option($this->prefix.'_options'));
+		self::$options = SerializeStringToArray(get_option($this->prefix.'_options'));
+		
+		
     
     if(is_admin()){
 
@@ -45,8 +51,16 @@ class BBWP_DB_Backup{
       }
       $this->set_option('upload_dir', $upload_dir);
       
-    }
+		}
 		
+		// add weekly schedule to wp cron
+		add_filter( 'cron_schedules', array($this , 'AddWeeklyCron' ));
+
+		//Weekly schedule hook
+		add_action($this->prefix.'_weekly_event', array($this , 'DoThisWeekly'));
+
+		//Dropbox upload event
+		add_action($this->prefix.'_dropbox_upload', array($this , 'dropboxUpload'));
 
   }// construct function end here
 
@@ -164,8 +178,83 @@ class BBWP_DB_Backup{
       self::$options[$key] = $value;
       update_option($this->prefix.'_options', ArrayToSerializeString(self::$options));
 
-  }// set_option
-  
+	}// set_option
+	
+
+	/******************************************/
+	/***** AddWeeklyCron **********/
+	/******************************************/
+  public function AddWeeklyCron( $schedules ) {
+
+		// add a 'weekly' schedule to the existing set
+		$schedules['weekly'] = array(
+			'interval' => 60 * 60 * 24 * 7, # 604,800, seconds in a week
+			//'interval' => 30,
+			'display' => __('Once Weekly')
+		);
+
+		// add a 'monthly' schedule to the existing set
+		$schedules['monthly'] = array(
+			'interval' => 60 * 60 * 24 * 30, # 604,800, seconds in a week
+			'display' => __('Once Monthly')
+		);
+
+		return $schedules;
+	}
+	
+
+	/******************************************/
+	/***** AddWeeklyCron **********/
+	/******************************************/
+  public function DoThisWeekly() {
+
+		$fileName = $this->get_option('upload_dir').'/'.DB_NAME.'-'.generateRandomInt(4).'-backup-'.date("m-d-Y_h-i-A",time()).'.sql';
+		
+		$BBWPDBBackupCron = new BBWPDBBackupCron();
+		$BBWPDBBackupCron->DoThisWeekly($fileName);
+		
+		// time() + 3600 = one hour from now.
+		// time() + 300 = 5 min from now.
+		wp_schedule_single_event( time() + 60, $this->prefix.'_dropbox_upload');
+
+	}
+
+	/******************************************/
+	/***** AddWeeklyCron **********/
+	/******************************************/
+  public function dropboxUpload() {
+		$BBWPDBBackupFileSystem = new BBWPDBBackupFileSystem();
+		$backups = $BBWPDBBackupFileSystem->get_backups();
+		if($backups && is_array($backups) && count($backups) >= 1){
+			$authorizationToken = $this->get_option('dropbox_token');
+			if($authorizationToken){
+				$DropBoxClient = new DropBoxClient($authorizationToken);
+				foreach($backups as $backup){
+					$date = new DateTime($backup['modified']);
+					$path = '/'.$date->format('Y').'/'.$date->format('m');
+					$file_path = $path.'/'.$backup['raw_name'];
+					$existing_files = $DropBoxClient->listFolder($path);
+					$uploaded = false;
+					
+					if(isset($existing_files['entries']) && is_array($existing_files['entries'])){						
+						foreach($existing_files['entries'] as $dfile){
+							if(isset($dfile['name']) && $dfile['name'] == $backup['raw_name']){
+								$uploaded = true;
+								break; 
+							}
+						}
+					}
+					
+					if($uploaded == true)
+						wp_delete_file($backup['path']);
+					else
+						$DropBoxClient->upload($file_path, $backup['path']);
+				}
+			}
+		}
+	}
+	
+	
 
   /******************************************/
   /***** CreateFile function **********/
