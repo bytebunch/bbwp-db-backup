@@ -70,6 +70,11 @@ class BBWPDBBackupPageSettings extends BBWP_DB_Backup{
                 <th scope="row"><label for="dropbox_token">Dropbox Authorization Token</label></th>
 								<td><input type="text" name="<?php echo $this->prefix.'[dropbox_token]'; ?>" id="dropbox_token" value="<?php echo $selected_value; ?>"></td>
 							</tr>
+							<tr valign="top">
+								<?php $selected_value = $this->get_option('mail_to'); ?>
+                <th scope="row"><label for="mail_to">Email Address</label></th>
+								<td><input type="email" name="<?php echo $this->prefix.'[mail_to]'; ?>" id="mail_to" value="<?php echo $selected_value; ?>"></td>
+							</tr>
             </table>
             </div><!-- inside-->
             </div><!-- postbox-->
@@ -150,9 +155,16 @@ class BBWPDBBackupPageSettings extends BBWP_DB_Backup{
             update_option("bbwp_update_message", $update_message);
           }
 				}
-				if(isset($_POST[$this->prefix]['dropbox_token']) && $_POST[$this->prefix]['dropbox_token']){
+				if(isset($_POST[$this->prefix]['dropbox_token'])/* && $_POST[$this->prefix]['dropbox_token']*/){
 					$value = BBWPSanitization::Textfield($_POST[$this->prefix]['dropbox_token']);
 					$this->set_option('dropbox_token', $value);
+					$update_message = '<p>Your setting have been updated.</p>';
+					update_option("bbwp_update_message", $update_message);
+				}
+
+				if(isset($_POST[$this->prefix]['mail_to'])){
+					$value = BBWPSanitization::Textfield($_POST[$this->prefix]['mail_to']);
+					$this->set_option('mail_to', $value);
 					$update_message = '<p>Your setting have been updated.</p>';
 					update_option("bbwp_update_message", $update_message);
 				}

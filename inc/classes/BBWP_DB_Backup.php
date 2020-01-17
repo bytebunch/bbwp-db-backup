@@ -116,9 +116,12 @@ class BBWP_DB_Backup{
 
     $this->set_option('recurrence', 'weekly');
 
-    //create index.php and .htaccess files
-    $this->CreateFile("index.php", $upload_dir, "<?php \r\n// Silence is golden\r\n?>");
-    $this->CreateFile(".htaccess", $upload_dir, "Options -Indexes\r\nDeny from all");
+		//create index.php and .htaccess files
+		if(!file_exists( $upload_dir."/index.php" ))
+			$this->CreateFile("index.php", $upload_dir, "<?php \r\n// Silence is golden\r\n?>");
+		
+		if(!file_exists( $upload_dir."/.htaccess" ))
+    	$this->CreateFile(".htaccess", $upload_dir, "Options -Indexes\r\nDeny from all");
 
 
 
@@ -211,11 +214,11 @@ class BBWP_DB_Backup{
 		$fileName = $this->get_option('upload_dir').'/'.DB_NAME.'-'.generateRandomInt(4).'-backup-'.date("m-d-Y_h-i-A",time()).'.sql';
 		
 		$BBWPDBBackupCron = new BBWPDBBackupCron();
-		$BBWPDBBackupCron->DoThisWeekly($fileName);
-		
+		$fileName = $BBWPDBBackupCron->DoThisWeekly($fileName);
+		update_option("bbwp_last_backup_file", $fileName);
 		// time() + 3600 = one hour from now.
 		// time() + 300 = 5 min from now.
-		wp_schedule_single_event( time() + 60, $this->prefix.'_dropbox_upload');
+		wp_schedule_single_event( time() + 300, $this->prefix.'_dropbox_upload');
 
 	}
 
@@ -223,6 +226,16 @@ class BBWP_DB_Backup{
 	/***** AddWeeklyCron **********/
 	/******************************************/
   public function dropboxUpload() {
+		//Email backup
+		$last_backup_file_name = get_option("bbwp_last_backup_file");
+		$email_to = $this->get_option('mail_to');
+		if($email_to && $last_backup_file_name && file_exists($last_backup_file_name)){
+			$headers = 'From: '.get_bloginfo("name").' '.get_bloginfo("admin_email") . "\r\n";
+			$attachments = array($last_backup_file_name);
+			wp_mail($email_to, "DB Backup - ".get_bloginfo("name"), "Database Backup of your site: ".get_bloginfo("url"), "", $attachments);
+		}
+		
+		//upload backup to dropbox
 		$BBWPDBBackupFileSystem = new BBWPDBBackupFileSystem();
 		$backups = $BBWPDBBackupFileSystem->get_backups();
 		if($backups && is_array($backups) && count($backups) >= 1){

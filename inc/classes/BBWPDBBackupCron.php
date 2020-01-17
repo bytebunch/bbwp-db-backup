@@ -26,7 +26,7 @@ class BBWPDBBackupCron{
 		//$fileName = $this->get_option('upload_dir').'/'.DB_NAME.'_'.date("m-d-Y_h-i-A",time()).'.sql.gz';
 		//$fileName = $this->get_option('upload_dir').'/'.DB_NAME.'-'.generateRandomInt(4).'-backup-'.date("m-d-Y_h-i-A",time()).'.sql';
 		//$fileName = $this->get_option('upload_dir').'/'.DB_NAME.'-backup-'.time().'.sql.gz';
-		update_option('dummy', get_option('dummy')+1);
+		//update_option('dummy', get_option('dummy')+1);
 		$isgzip = shell_exec("gzip");
 		$ismysqldump = shell_exec("mysqldump");
 		if($isgzip && $ismysqldump){
@@ -37,6 +37,9 @@ class BBWPDBBackupCron{
 		}else{
 			
 		}
+
+		return $fileName;
+
 	}
 
 
