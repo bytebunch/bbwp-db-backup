@@ -1,4 +1,5 @@
 <?php
+namespace ByteBunch\BBWPDBBackup;
 
 class BBWPDBBackupTable{
 
@@ -144,4 +145,4 @@ class BBWPDBBackupTable{
 	
 }
 
-$BBWPDBBackupTable = new BBWPDBBackupTable();
+//$BBWPDBBackupTable = new BBWPDBBackupTable();

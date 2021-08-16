@@ -1,5 +1,11 @@
 <?php
 
+// add the data sanitization and validation class
+if(!class_exists('BBWPSanitization'))
+	include_once BBWP_DB_BACKUP_ABS.'inc/classes/BBWPSanitization.php';
+
+include_once BBWP_DB_BACKUP_ABS.'inc/functions.php';
+
 spl_autoload_register( function ( $class ) {
 
 	// project-specific namespace prefix
@@ -7,7 +13,7 @@ spl_autoload_register( function ( $class ) {
 	
 	// If the specified $class does not include our namespace, duck out.
 	if ( false === strpos( $class, 'ByteBunch\BBWPDBBackup' ) ) {
-		return; 
+		return;
 	}
 	// base directory for the namespace prefix
 	$base_dir = BBWP_DB_BACKUP_ABS .'inc/classes/';
